@@ -1,22 +1,32 @@
 module.exports = class Controller {
-    constructor(locker) {
+    constructor(locker, httpProxy) {
         this.locker = locker
+        this.httpProxy = httpProxy.createProxyServer({
+            target: 'https://mykeybox.office.saatec.ge',
+            changeOrigin: true,
+        })
+        this.httpProxy.on('proxyRes', function(proxyRes, req, res) {
+            proxyRes.headers['access-control-allow-origin'] = '*';
+            res.writeHead(proxyRes.statusCode, proxyRes.headers);
+            proxyRes.pipe(res);
+        });
+        this.httpProxy.timeout = 10000
     }
 
     check(request, response) {
-        this.responseJSON(response, {
+        this.response(response, {
             'closed_doors': this.locker.getClosedDoorsState(),
         }, 200)
     }
 
     open(number, request, response) {
         if (this.locker.openDoor(number)) {
-            this.responseJSON(response, {
+            this.response(response, {
                 'code': 'door_opened',
                 'message': `Door ${number} opened!`,
             })
         } else {
-            this.responseJSON(response, {
+            this.response(response, {
                 'code': 'invalid_door_number',
                 'message': 'Invalid door provided',
             }, 400)
@@ -24,19 +34,33 @@ module.exports = class Controller {
     }
 
     proxyToThirdPartyApi(url, request, response) {
-        this.responseJSON(response, {
-            'message': url
-        })
+        try {
+            request.headers['ApiKey'] = 'z7#D4k9@A9'
+            request.url = url
+            this.httpProxy.web(request, response)
+        } catch (err) {
+            this.response(response, {
+                'code': 'error',
+                'message': err.message,
+            })
+        }
     }
 
     invalidRequest(request, response) {
-        this.responseJSON(response, {
+        this.response(response, {
             'code': 'invalid_request',
             'message': 'Invalid request',
         }, 400)
     }
 
     handle(request, response) {
+        if (!this.locker.isDeviceUp()) {
+            this.response(response, {
+                'code': 'device',
+                'message': 'Device is not connected successfully!',
+            })
+            return
+        }
         if (request.url === '/check') {
             this.check(request, response)
         } else if (request.url.startsWith('/open')) {
@@ -50,11 +74,18 @@ module.exports = class Controller {
         }
     }
 
-    responseJSON(response, data, responseStatus = 200) {
+    response(response, content, responseStatus = 200) {
+        response.setHeader('access-control-allow-origin', '*')
+
+        let contentType = 'text/html'
+        if (typeof content === 'object') {
+            contentType = 'application/json'
+            content = JSON.stringify(content)
+        }
         response.writeHead(responseStatus, {
-            'Content-Type': 'application/json',
+            'Content-Type': contentType,
         })
-        response.write(JSON.stringify(data))
+        response.write(content)
         response.end()
     }
 }

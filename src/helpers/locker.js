@@ -8,6 +8,8 @@ module.exports = class DoorLockerWrapper {
         this.port = new SerialPort({path: devicePath, baudRate: baudRate})
         this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
 
+        this.last_response_time = 0;
+
         this.closedDoorsState = []
         this.getDoorsArray().forEach(() => {
             this.closedDoorsState.push(false)
@@ -18,6 +20,18 @@ module.exports = class DoorLockerWrapper {
         setInterval(() => {
             this.prepareDoorStates()
         }, 500)
+    }
+
+    touchLastResponse() {
+        this.last_response_time = this.getCurrentTime()
+    }
+
+    getCurrentTime() {
+        return new Date().getTime()
+    }
+
+    isDeviceUp(timeout = 2500) {
+        return this.last_response_time + timeout > this.getCurrentTime()
     }
 
     getDoorsArray() {
@@ -49,6 +63,7 @@ module.exports = class DoorLockerWrapper {
                 this.closedDoorsState[index + offset] = value
             })
 
+            this.touchLastResponse()
         })
     }
 
