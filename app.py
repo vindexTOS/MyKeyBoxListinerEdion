@@ -17,9 +17,9 @@ def main():
     return "up", 200
 
 
-@app.route("/api/proxy/<path:any_wildcard_here>")
+@app.route("/api/proxy/<path:any_wildcard_here>", methods=['POST', 'GET'])
 def proxy(any_wildcard_here):
-    target_url = "https://mykeybox.office.saatec.ge/Umbraco/Api/MyKeyBoxOrder/" + any_wildcard_here
+    target_url = "https://mykeybox.office.saatec.ge/Umbraco/Api/MyKeyBoxOrder/" + any_wildcard_here + "?" + request.query_string.decode('utf-8')
 
     headers = {
         'ApiKey': 'z7#D4k9@A9',
@@ -30,7 +30,10 @@ def proxy(any_wildcard_here):
     proxy_headers.update(headers)
 
 
-    response = requests.get(target_url, headers=proxy_headers)
+    if request.method == 'POST':
+        response = requests.post(target_url, headers=proxy_headers)
+    else:
+        response = requests.get(target_url, headers=proxy_headers)
 
 
     excluded_headers = ['content-encoding', 'content-length', 'transfer-encoding', 'connection']  #NOTE we here exclude all "hop-by-hop headers" defined by RFC 2616 section 13.5.1 ref. https://www.rfc-editor.org/rfc/rfc2616#section-13.5.1
