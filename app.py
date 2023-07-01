@@ -66,20 +66,20 @@ def open_door(door: str):
         return {"error": "Invalid door number"}, 400
 
 
-# @app.route("/post/<string:arr>")
-# def test_(arr: str):
-#     try:
-#         list_ = json.loads(arr)
-#     except:
-#         return {"error": "Invalid JSON"}, 400
-#     try:
-#         state = pickle.load(open("state.pickle", "rb"))
-#     except:
-#         state = State()
-#     state.door_status = list_
-#     door = state.to_open
-#     state.to_open = None
-#     state.last_updated = time.time() * 1000
-#     pickle.dump(state, open("state.pickle", "wb"))
-#
-#     return str(door) if door is not None else "null", 200
+@app.route("/post/<string:arr>")
+def test_(arr: str):
+    try:
+        list_ = json.loads(arr)
+    except:
+        return {"error": "Invalid JSON"}, 400
+    try:
+        state = pickle.load(open("state.pickle", "rb"))
+    except:
+        state = State()
+    state.door_status = list_
+    door = state.to_open
+    state.to_open = None
+    state.last_updated = time.time() * 1000
+    pickle.dump(state, open("state.pickle", "wb"))
+
+    return str(door) if door is not None else "null", 200
