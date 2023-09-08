@@ -19,7 +19,7 @@ def main():
 
 @app.route("/api/proxy/<path:any_wildcard_here>", methods=['POST', 'GET'])
 def proxy(any_wildcard_here):
-    target_url = "https://mykeybox.office.saatec.ge/Umbraco/Api/MyKeyBoxOrder/" + any_wildcard_here + "?" + request.query_string.decode('utf-8')
+    target_url = "https://mykeybox.com/Umbraco/Api/MyKeyBoxOrder/" + any_wildcard_here + "?" + request.query_string.decode('utf-8')
 
     headers = {
         'ApiKey': 'z7#D4k9@A9',
