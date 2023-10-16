@@ -14,7 +14,7 @@ CORS(app)
 
 @app.route("/")
 def main():
-    return "uf", 200
+    return "up", 200
 
 
 @app.route("/api/proxy/<path:any_wildcard_here>", methods=['POST', 'GET'])
