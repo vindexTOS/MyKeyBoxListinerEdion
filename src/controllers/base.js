@@ -42,7 +42,7 @@ module.exports = class Controller {
             this.response(response, {
                 'code': 'error',
                 'message': err.message,
-            })
+            }, 400)
         }
     }
 
@@ -58,7 +58,7 @@ module.exports = class Controller {
             this.response(response, {
                 'code': 'device',
                 'message': 'Device is not connected successfully!',
-            })
+            }, 400)
             return
         }
         if (request.url === '/check') {
