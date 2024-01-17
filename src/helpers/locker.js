@@ -146,6 +146,8 @@ module.exports = class DoorLockerWrapper {
     }
 
     write(command) {
-        this.port.write(this.getBuffer(command))
+        if (this.port) {
+            this.port.write(this.getBuffer(command))
+        }
     }
 }
