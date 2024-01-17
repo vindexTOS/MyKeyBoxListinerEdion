@@ -86,7 +86,7 @@ module.exports = class DoorLockerWrapper {
 
             this.touchLastResponse()
         })
-        this.parser.on('error', (err) => {
+        this.port.on('error', (err) => {
             console.log('error happened', err)
         })
     }
