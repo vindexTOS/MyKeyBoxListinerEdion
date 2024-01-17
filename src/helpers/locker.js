@@ -86,6 +86,9 @@ module.exports = class DoorLockerWrapper {
 
             this.touchLastResponse()
         })
+        this.parser.on('error', (err) => {
+            console.log('error happened', err)
+        })
     }
 
     binaryToDoorsArray(binary) {
