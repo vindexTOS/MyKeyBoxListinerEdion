@@ -8,7 +8,6 @@ module.exports = class DoorLockerWrapper {
         this.port = new SerialPort({path: devicePath, baudRate: baudRate})
         this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
 
-        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
 
         this.last_response_time = 0;
 
@@ -22,6 +21,8 @@ module.exports = class DoorLockerWrapper {
         setInterval(() => {
             this.prepareDoorStates()
         }, 500)
+
+        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
     }
 
     touchLastResponse() {
