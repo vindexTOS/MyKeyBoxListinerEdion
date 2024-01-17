@@ -34,6 +34,7 @@ module.exports = class DoorLockerWrapper {
 
     isDeviceUp(timeout = 2500) {
         if (this.last_response_time + timeout <= this.getCurrentTime()) {
+            console.log('epeeee')
             console.log(this.port, this.parser)
         }
         return this.last_response_time + timeout > this.getCurrentTime()
