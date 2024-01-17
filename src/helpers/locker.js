@@ -33,9 +33,7 @@ module.exports = class DoorLockerWrapper {
     }
 
     isDeviceUp(timeout = 2500) {
-        if (this.last_response_time + timeout <= this.getCurrentTime()) {
-            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo2')
-        }
+        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo2')
         return this.last_response_time + timeout > this.getCurrentTime()
     }
 
