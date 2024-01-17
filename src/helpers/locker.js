@@ -22,7 +22,9 @@ module.exports = class DoorLockerWrapper {
         //     this.prepareDoorStates()
         // }, 500)
 
-        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
+        setInterval(() => {
+            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
+        }, 1000)
     }
 
     touchLastResponse() {
