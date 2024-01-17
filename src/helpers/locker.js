@@ -8,6 +8,8 @@ module.exports = class DoorLockerWrapper {
         this.port = new SerialPort({path: devicePath, baudRate: baudRate})
         this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
 
+        console.log(this.port, this.parser)
+
         this.last_response_time = 0;
 
         this.closedDoorsState = []
