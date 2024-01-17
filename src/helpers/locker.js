@@ -8,7 +8,7 @@ module.exports = class DoorLockerWrapper {
         this.port = new SerialPort({path: devicePath, baudRate: baudRate})
         this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
 
-        console.log(this.port ? this.port.IsOpen : 'daketilia jigo')
+        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
 
         this.last_response_time = 0;
 
@@ -34,7 +34,7 @@ module.exports = class DoorLockerWrapper {
 
     isDeviceUp(timeout = 2500) {
         if (this.last_response_time + timeout <= this.getCurrentTime()) {
-            console.log(this.port ? this.port.IsOpen : 'daketilia jigo2')
+            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo2')
         }
         return this.last_response_time + timeout > this.getCurrentTime()
     }
