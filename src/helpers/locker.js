@@ -16,7 +16,7 @@ module.exports = class DoorLockerWrapper {
             this.closedDoorsState.push(false)
         })
 
-        this.listenDoors()
+        // this.listenDoors()
 
         // setInterval(() => {
         //     this.prepareDoorStates()
