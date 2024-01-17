@@ -18,10 +18,8 @@ module.exports = class DoorLockerWrapper {
                     this.listenDoors()
                     this.prepareDoorStates()
                 } catch (e) {
-                    console.log('errror', e)
                 }
             }
-            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
         }, 1000)
 
         setInterval(() => {
@@ -86,8 +84,9 @@ module.exports = class DoorLockerWrapper {
 
             this.touchLastResponse()
         })
+        // Listen errors to not fail
         this.port.on('error', (err) => {
-            console.log('error happened', err)
+            console.log('Error happened', err)
         })
     }
 
