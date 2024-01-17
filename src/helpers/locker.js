@@ -18,9 +18,9 @@ module.exports = class DoorLockerWrapper {
 
         this.listenDoors()
 
-        setInterval(() => {
-            this.prepareDoorStates()
-        }, 500)
+        // setInterval(() => {
+        //     this.prepareDoorStates()
+        // }, 500)
 
         console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
     }
