@@ -5,9 +5,35 @@ module.exports = class DoorLockerWrapper {
     constructor(lockers, devicePath, baudRate) {
         this.lockers = lockers
 
-        this.port = new SerialPort({path: devicePath, baudRate: baudRate})
-        this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
+        this.setupDisconnectedDevice()
 
+        setInterval(() => {
+            if (!this.port || !this.port.port || !this.port.port.isOpen) {
+                try {
+                    this.last_response_time = 0;
+
+                    this.port = new SerialPort({path: devicePath, baudRate: baudRate})
+                    this.parser = this.port.pipe(new ByteLengthParser({length: 9}))
+
+                    this.listenDoors()
+                    this.prepareDoorStates()
+                } catch (e) {
+                    console.log('errror', e)
+                }
+            }
+            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
+        }, 1000)
+
+        setInterval(() => {
+            if (this.isDeviceUp()) {
+                this.prepareDoorStates()
+            }
+        }, 500)
+    }
+
+    setupDisconnectedDevice() {
+        this.port = null
+        this.parser = null
 
         this.last_response_time = 0;
 
@@ -15,16 +41,6 @@ module.exports = class DoorLockerWrapper {
         this.getDoorsArray().forEach(() => {
             this.closedDoorsState.push(false)
         })
-
-        // this.listenDoors()
-
-        // setInterval(() => {
-        //     this.prepareDoorStates()
-        // }, 500)
-
-        setInterval(() => {
-            console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo')
-        }, 1000)
     }
 
     touchLastResponse() {
@@ -36,7 +52,6 @@ module.exports = class DoorLockerWrapper {
     }
 
     isDeviceUp(timeout = 2500) {
-        console.log(this.port && this.port.port ? this.port.port.isOpen : 'daketilia jigo2')
         return this.last_response_time + timeout > this.getCurrentTime()
     }
 
