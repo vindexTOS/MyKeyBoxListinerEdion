@@ -36,7 +36,7 @@ module.exports = class Controller {
     proxyToThirdPartyApi(url, request, response) {
         try {
             request.headers['ApiKey'] = 'z7#D4k9@A9'
-            request.url = url
+            request.url = 'Umbraco/Api/MyKeyBoxOrder/' + url
             this.httpProxy.web(request, response)
         } catch (err) {
             this.response(response, {
