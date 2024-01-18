@@ -4,6 +4,7 @@ module.exports = class Controller {
         this.httpProxy = httpProxy.createProxyServer({
             target: 'https://mykeybox.office.saatec.ge',
             changeOrigin: true,
+            selfHandleResponse: true,
         })
         this.httpProxy.on('proxyRes', function(proxyRes, req, res) {
             proxyRes.headers['access-control-allow-origin'] = '*';
