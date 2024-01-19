@@ -18,8 +18,10 @@ module.exports = class DoorLockerWrapper {
                     this.listenDoors()
                     this.prepareDoorStates()
                 } catch (e) {
+                    console.log('eh ar gamovida', e);
                 }
             }
+            console.log('aq movida');
         }, 1000)
 
         setInterval(() => {
