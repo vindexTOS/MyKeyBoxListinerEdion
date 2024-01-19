@@ -11,6 +11,9 @@ module.exports = class DoorLockerWrapper {
             if (!this.port || !this.port.port || !this.port.port.isOpen || !this.isDeviceUp()) {
                 try {
                     console.log('tryshi shemovida')
+                    if (this.port) {
+                        this.port.close()
+                    }
 
                     this.last_response_time = 0;
 
