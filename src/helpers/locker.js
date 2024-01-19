@@ -8,7 +8,7 @@ module.exports = class DoorLockerWrapper {
         this.setupDisconnectedDevice()
 
         setInterval(() => {
-            if (!this.port || !this.port.port || !this.port.port.isOpen) {
+            if (!this.port || !this.port.port || !this.port.port.isOpen || !this.isDeviceUp()) {
                 try {
                     console.log('tryshi shemovida')
 
@@ -26,7 +26,7 @@ module.exports = class DoorLockerWrapper {
                 }
             }
             console.log('aq movida');
-        }, 1000)
+        }, 5000)
 
         setInterval(() => {
             if (this.isDeviceUp()) {
