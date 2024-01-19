@@ -21,6 +21,8 @@ module.exports = class DoorLockerWrapper {
                     this.prepareDoorStates()
                 } catch (e) {
                     console.log('eh ar gamovida', e);
+                    this.port = null;
+                    this.parser = null;
                 }
             }
             console.log('aq movida');
