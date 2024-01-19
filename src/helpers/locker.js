@@ -10,6 +10,8 @@ module.exports = class DoorLockerWrapper {
         setInterval(() => {
             if (!this.port || !this.port.port || !this.port.port.isOpen) {
                 try {
+                    console.log('tryshi shemovida')
+
                     this.last_response_time = 0;
 
                     this.port = new SerialPort({path: devicePath, baudRate: baudRate})
