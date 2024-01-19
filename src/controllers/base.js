@@ -11,6 +11,20 @@ module.exports = class Controller {
             res.writeHead(proxyRes.statusCode, proxyRes.headers);
             proxyRes.pipe(res);
         });
+
+        this.httpProxy.on('error', (err, req, res) => {
+            console.error('Proxy error', err);
+            if (err.code === 'ETIMEDOUT') {
+                // Handle timeout error gracefully
+                res.writeHead(504, { 'Content-Type': 'text/plain' });
+                res.end('Gateway Timeout');
+            } else {
+                // Handle other errors
+                res.writeHead(500, { 'Content-Type': 'text/plain' });
+                res.end('Internal Server Error');
+            }
+        });
+
         this.httpProxy.timeout = 10000
     }
 
