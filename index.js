@@ -10,4 +10,4 @@ const controller = new Controller(locker, httpProxy)
 
 http.createServer((request, response) => {
     controller.handle(request, response)
-}).listen(14141, '0.0.0.0')
+}).listen(14141)
