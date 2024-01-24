@@ -30,7 +30,7 @@ module.exports = class Controller {
 
     check(request, response) {
         this.response(response, {
-            'closed_doors': this.locker.getClosedDoorsState(),
+            'closed_doors': this.locker.getClosedDoorsState().map(i => i ? 1 : 0),
         }, 200)
     }
 
