@@ -2,7 +2,7 @@ module.exports = class Controller {
     constructor(locker, httpProxy) {
         this.locker = locker
         this.httpProxy = httpProxy.createProxyServer({
-            target: 'https://mykeybox.office.saatec.ge',
+            target: 'https://mykeybox.com',
             changeOrigin: true,
             selfHandleResponse: true,
         })
