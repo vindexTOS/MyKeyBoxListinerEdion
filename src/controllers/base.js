@@ -28,10 +28,6 @@ module.exports = class Controller {
         this.httpProxy.timeout = 10000
     }
 
-    sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
     check(request, response) {
         this.response(response, {
             'doors': this.locker.getClosedDoorsState().map(i => i ? 1 : 0),
@@ -72,8 +68,7 @@ module.exports = class Controller {
         }, 400)
     }
 
-    async handle(request, response) {
-        await this.sleep(5000)
+    handle(request, response) {
         if (!this.locker.isDeviceUp()) {
             this.response(response, {
                 'code': 'device',
