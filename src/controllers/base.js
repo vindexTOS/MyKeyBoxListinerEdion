@@ -65,6 +65,12 @@ module.exports = class Controller {
         }, 200)
     }
 
+    deviceCode(request, response) {
+        this.response(response, {
+            'code': this.unique_code,
+        }, 200)
+    }
+
     open(number, request, response) {
         if (this.locker.openDoor(number)) {
             this.response(response, {
@@ -101,12 +107,14 @@ module.exports = class Controller {
     }
 
     handle(request, response) {
+        if (request.url === '/device_code') {
+            return this.deviceCode(request, response)
+        }
         if (!this.locker.isDeviceUp()) {
-            this.response(response, {
+            return this.response(response, {
                 'code': 'device',
                 'message': 'Device is not connected successfully!',
             }, 400)
-            return
         }
         if (request.url === '/check') {
             this.check(request, response)
