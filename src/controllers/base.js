@@ -1,11 +1,17 @@
 module.exports = class Controller {
     unique_code = '';
 
+    test_api_base = 'https://mykeybox.office.saatec.ge'
+    api_base = 'https://mykeybox.com'
+    test_devices = [
+        '6294-0702-0524-1350',
+    ]
+
     constructor(locker, httpProxy) {
         this.readOrCreateUniqueCode()
         this.locker = locker
         this.httpProxy = httpProxy.createProxyServer({
-            target: 'https://mykeybox.com',
+            target: this.test_devices.includes(this.unique_code) ? this.test_api_base : this.api_base,
             changeOrigin: true,
             selfHandleResponse: true,
         })
@@ -89,7 +95,7 @@ module.exports = class Controller {
         try {
             request.headers['ApiKey'] = 'z7#D4k9@A9'
             const separator = url.includes('?') ? '&' : '?'
-            request.url = 'Umbraco/Api/MyKeyBoxOrder/' + url + separator + 'uniquecode=' + this.unique_code
+            request.url = 'Umbraco/Api/MyKeyBoxOrder/' + url + separator + 'uniqueCode=' + this.unique_code.replaceAll('-', '')
             this.httpProxy.web(request, response)
         } catch (err) {
             this.response(response, {
