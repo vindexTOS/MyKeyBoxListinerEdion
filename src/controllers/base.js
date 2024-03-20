@@ -1,68 +1,91 @@
-module.exports = class Controller {
-    unique_code = '';
+const fs = require('fs')
+const axios = require('axios')
 
-    test_api_base = 'https://mykeybox.office.saatec.ge'
-    api_base = 'https://mykeybox.com'
-    test_devices = [
-        '6294-0702-0524-1350',
+module.exports = class Controller {
+    API_KEY = 'z7#D4k9@A9'
+    TEST_API_BASE = 'https://mykeybox.office.saatec.ge'
+    API_BASE = 'https://mykeybox.com'
+
+    UNIQUE_CODE_LENGTH = 7
+    UNIQUE_CODE_FILENAME = 'device.uniquecode.txt'
+
+    unique_code = ''
+
+    TEST_DEVICES_UNIQUE_CODES = [
+        'XXXXXXX',
     ]
 
     constructor(locker, httpProxy) {
-        this.readOrCreateUniqueCode()
-        this.locker = locker
-        this.httpProxy = httpProxy.createProxyServer({
-            target: this.test_devices.includes(this.unique_code) ? this.test_api_base : this.api_base,
-            changeOrigin: true,
-            selfHandleResponse: true,
+        this.readOrCreateUniqueCode().then(() => {
+            console.log(this.unique_code)
+            this.locker = locker
+
+            this.httpProxy = httpProxy.createProxyServer({
+                target: this.TEST_DEVICES_UNIQUE_CODES.includes(this.unique_code) ? this.TEST_API_BASE : this.API_BASE,
+                changeOrigin: true,
+                selfHandleResponse: true,
+            })
+
+            this.httpProxy.on('proxyRes', function (proxyRes, req, res) {
+                proxyRes.headers['access-control-allow-origin'] = '*'
+                res.writeHead(proxyRes.statusCode, proxyRes.headers)
+                proxyRes.pipe(res)
+            })
+
+            this.httpProxy.on('error', (err, req, res) => {
+                console.error('Proxy error', err)
+                if (err.code === 'ETIMEDOUT') {
+                    res.writeHead(504, {'Content-Type': 'text/plain'})
+                    res.end('Gateway Timeout')
+                } else {
+                    res.writeHead(500, {'Content-Type': 'text/plain'})
+                    res.end('Internal Server Error')
+                }
+            })
+
+            this.httpProxy.timeout = 10000
         })
-        this.httpProxy.on('proxyRes', function (proxyRes, req, res) {
-            proxyRes.headers['access-control-allow-origin'] = '*';
-            res.writeHead(proxyRes.statusCode, proxyRes.headers);
-            proxyRes.pipe(res);
-        });
-
-        this.httpProxy.on('error', (err, req, res) => {
-            console.error('Proxy error', err);
-            if (err.code === 'ETIMEDOUT') {
-                // Handle timeout error gracefully
-                res.writeHead(504, {'Content-Type': 'text/plain'});
-                res.end('Gateway Timeout');
-            } else {
-                // Handle other errors
-                res.writeHead(500, {'Content-Type': 'text/plain'});
-                res.end('Internal Server Error');
-            }
-        });
-
-        this.httpProxy.timeout = 10000
     }
 
-    readOrCreateUniqueCode() {
-        const fs = require('fs');
-        const filename = 'device.uniquecode.txt';
-
-        if (!fs.existsSync(filename)) {
-            const getRandomNumber = (min, max) => {
-                return Math.floor(Math.random() * (max - min + 1)) + min;
-            }
-
-            const generateRandomString = () => {
-                const date = new Date()
-                const day = String(date.getDay()).padStart(2, '0')
-                const month = String(date.getMonth()).padStart(2, '0')
-                const year = String(date.getFullYear()).substring(2)
-                const hour = String(date.getHours()).padStart(2, '0')
-                const minute = String(date.getMinutes()).padStart(2, '0')
-                const second = String(date.getSeconds()).padStart(2, '0')
-
-                const random = getRandomNumber(1000, 9999);
-                return `${random}-${hour}${month}-${day}${year}-${second}${minute}`;
-            }
-
-            fs.writeFileSync(filename, generateRandomString());
+    async readOrCreateUniqueCode() {
+        const getRandomNumber = (min, max) => {
+            return Math.floor(Math.random() * (max - min + 1)) + min
         }
 
-        this.unique_code = fs.readFileSync(filename, 'utf8')
+        const checkIfCodeExistsRemote = async (code) => {
+            try {
+                const url = this.TEST_API_BASE + '/' + this.getAPIUrl('VerifyUniqueCode?uniqueCode=' + code)
+                console.log(url)
+                const response = await axios.get(url, {
+                    headers: {
+                        'ApiKey': this.API_KEY,
+                    }
+                })
+                return response.status === 200
+            } catch (error) {
+                return false
+            }
+        }
+
+        const generateAndStoreCode = async () => {
+            while (true) {
+                const code = getRandomNumber(10 ** (this.UNIQUE_CODE_LENGTH - 1), 10 ** this.UNIQUE_CODE_LENGTH - 1).toString()
+                if (!(await checkIfCodeExistsRemote(code))) {
+                    fs.writeFileSync(this.UNIQUE_CODE_FILENAME, code)
+                    this.unique_code = code
+                    break
+                }
+            }
+        }
+
+        if (!fs.existsSync(this.UNIQUE_CODE_FILENAME)) {
+            await generateAndStoreCode()
+        } else {
+            this.unique_code = fs.readFileSync(this.UNIQUE_CODE_FILENAME, 'utf8')
+            if (this.unique_code.length !== this.UNIQUE_CODE_LENGTH) {
+                await generateAndStoreCode()
+            }
+        }
     }
 
     check(request, response) {
@@ -93,9 +116,9 @@ module.exports = class Controller {
 
     proxyToThirdPartyApi(url, request, response) {
         try {
-            request.headers['ApiKey'] = 'z7#D4k9@A9'
+            request.headers['ApiKey'] = this.API_KEY
             const separator = url.includes('?') ? '&' : '?'
-            request.url = 'Umbraco/Api/MyKeyBoxOrder/' + url + separator + 'uniqueCode=' + this.unique_code.replaceAll('-', '')
+            request.url = this.getAPIUrl(url + separator + 'uniqueCode=' + this.unique_code)
             this.httpProxy.web(request, response)
         } catch (err) {
             this.response(response, {
@@ -116,7 +139,7 @@ module.exports = class Controller {
         if (request.url === '/device_code') {
             return this.deviceCode(request, response)
         }
-        if (!this.locker.isDeviceUp()) {
+        if (!this.unique_code || !this.locker.isDeviceUp()) {
             return this.response(response, {
                 'code': 'device',
                 'message': 'Device is not connected successfully!',
@@ -148,5 +171,9 @@ module.exports = class Controller {
         })
         response.write(content)
         response.end()
+    }
+
+    getAPIUrl(url) {
+        return 'Umbraco/Api/MyKeyBoxOrder/' + url
     }
 }
