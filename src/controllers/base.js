@@ -12,12 +12,12 @@ module.exports = class Controller {
     unique_code = ''
 
     TEST_DEVICES_UNIQUE_CODES = [
-        'XXXXXXX',
+        '4058840',
     ]
 
     constructor(locker, httpProxy) {
         this.readOrCreateUniqueCode().then(() => {
-            console.log(this.unique_code)
+            // console.log(this.unique_code)
             this.locker = locker
 
             this.httpProxy = httpProxy.createProxyServer({
@@ -55,7 +55,7 @@ module.exports = class Controller {
         const checkIfCodeExistsRemote = async (code) => {
             try {
                 const url = this.TEST_API_BASE + '/' + this.getAPIUrl('VerifyUniqueCode?uniqueCode=' + code)
-                console.log(url)
+                // console.log(url)
                 const response = await axios.get(url, {
                     headers: {
                         'ApiKey': this.API_KEY,

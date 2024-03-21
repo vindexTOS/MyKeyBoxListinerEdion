@@ -10,7 +10,7 @@ module.exports = class DoorLockerWrapper {
         setInterval(() => {
             if (!this.port || !this.port.port || !this.port.port.isOpen || !this.isDeviceUp()) {
                 try {
-                    console.log('tryshi shemovida')
+                    // console.log('tryshi shemovida')
                     if (this.port) {
                         this.port.close()
                     }
@@ -23,12 +23,12 @@ module.exports = class DoorLockerWrapper {
                     this.listenDoors()
                     this.prepareDoorStates()
                 } catch (e) {
-                    console.log('eh ar gamovida', e);
+                    // console.log('eh ar gamovida', e);
                     this.port = null;
                     this.parser = null;
                 }
             }
-            console.log('aq movida');
+            // console.log('aq movida');
         }, 5000)
 
         setInterval(() => {
