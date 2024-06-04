@@ -17,8 +17,11 @@ module.exports = class Controller {
     ]
 
     constructor(locker, httpProxy) {
+        console.log('Controller.constructor')
         this.readOrCreateUniqueCode().then(() => {
-            // console.log(this.unique_code)
+            console.log('Unique code is: ' + this.unique_code)
+            console.log('Testing devices are: ', this.TEST_DEVICES_UNIQUE_CODES)
+
             this.locker = locker
 
             this.httpProxy = httpProxy.createProxyServer({
@@ -26,6 +29,8 @@ module.exports = class Controller {
                 changeOrigin: true,
                 selfHandleResponse: true,
             })
+
+            console.log('API is: ' + this.httpProxy.options.target)
 
             this.exchangeDeviceInfo()
 
@@ -91,11 +96,12 @@ module.exports = class Controller {
         }
     }
 
-    async exchangeDeviceInfo() {
+    exchangeDeviceInfo() {
         axios.get(this.httpProxy.options.target + '/' + this.getAPIUrl(`GetBoxes?uniqueCode=${this.unique_code}` ), {
             headers: {'ApiKey': this.API_KEY},
         }).then((r) => {
             if (r.data) {
+                console.log('exchangeDeviceInfo:GetBoxes OK', r.data)
                 let boxes = []
                 r.data.forEach((box) => {
                     let boxData = {...box}
@@ -114,6 +120,7 @@ module.exports = class Controller {
                     }, {
                         headers: {'ApiKey': this.API_KEY},
                     }).then((r) => {
+                        console.log('exchangeDeviceInfo:ExchangeDeviceInformation OK', r.data)
                         if (r.data) {
                             r.data.forEach(boxToOpen => {
                                 boxes.forEach((box, index) => {
@@ -124,16 +131,18 @@ module.exports = class Controller {
                             })
                         }
                     }).catch((e) => {
+                        console.log('exchangeDeviceInfo:ExchangeDeviceInformation Fail: ' + e.message)
                     })
                 }
 
                 setInterval(exchangeInfo, 60 * 1000)
                 exchangeInfo()
             } else {
+                console.log('exchangeDeviceInfo:GetBoxes OK but empty | retry in 30 seconds')
                 setTimeout(() => this.exchangeDeviceInfo(), 30 * 1000)
             }
         }).catch((e) => {
-            // console.log(e)
+            console.log('exchangeDeviceInfo:GetBoxes FAIL: ' + e.message + ' | retry in 10 seconds')
             setTimeout(() => this.exchangeDeviceInfo(), 10 * 1000)
         });
     }
