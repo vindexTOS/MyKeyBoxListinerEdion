@@ -13,7 +13,7 @@ module.exports = class Controller {
 
     TEST_DEVICES_UNIQUE_CODES = [
         '4058840',
-        '3278284',
+        '9647188',
     ]
 
     constructor(locker, httpProxy) {
