@@ -3,7 +3,7 @@ const axios = require('axios')
 
 module.exports = class Controller {
     API_KEY = 'z7#D4k9@A9'
-    TEST_API_BASE = 'https://mykeybox.office.saatec.ge'
+    TEST_API_BASE = 'https://testkeybox.mygps.ge:4433'
     API_BASE = 'https://mykeybox.com'
 
     UNIQUE_CODE_LENGTH = 7
@@ -13,6 +13,7 @@ module.exports = class Controller {
 
     TEST_DEVICES_UNIQUE_CODES = [
         '4058840',
+        '3278284',
     ]
 
     constructor(locker, httpProxy) {
@@ -25,6 +26,8 @@ module.exports = class Controller {
                 changeOrigin: true,
                 selfHandleResponse: true,
             })
+
+            this.exchangeDeviceInfo()
 
             this.httpProxy.on('proxyRes', function (proxyRes, req, res) {
                 proxyRes.headers['access-control-allow-origin'] = '*'
@@ -54,7 +57,7 @@ module.exports = class Controller {
 
         const checkIfCodeExistsRemote = async (code) => {
             try {
-                const url = this.TEST_API_BASE + '/' + this.getAPIUrl('VerifyUniqueCode?uniqueCode=' + code)
+                const url = this.API_BASE + '/' + this.getAPIUrl('VerifyUniqueCode?uniqueCode=' + code)
                 // console.log(url)
                 const response = await axios.get(url, {
                     headers: {
@@ -81,11 +84,58 @@ module.exports = class Controller {
         if (!fs.existsSync(this.UNIQUE_CODE_FILENAME)) {
             await generateAndStoreCode()
         } else {
-            this.unique_code = fs.readFileSync(this.UNIQUE_CODE_FILENAME, 'utf8')
+            this.unique_code = fs.readFileSync(this.UNIQUE_CODE_FILENAME, 'utf8').trim()
             if (this.unique_code.length !== this.UNIQUE_CODE_LENGTH) {
                 await generateAndStoreCode()
             }
         }
+    }
+
+    async exchangeDeviceInfo() {
+        axios.get(this.httpProxy.options.target + '/' + this.getAPIUrl(`GetBoxes?uniqueCode=${this.unique_code}` ), {
+            headers: {'ApiKey': this.API_KEY},
+        }).then((r) => {
+            if (r.data) {
+                let boxes = []
+                r.data.forEach((box) => {
+                    let boxData = {...box}
+                    delete boxData['boxStatus']
+                    boxes.push(boxData)
+                })
+                const exchangeInfo = () => {
+                    let doors = this.locker.getClosedDoorsState().map(i => i ? 1 : 0)
+                    for(let i = 0; i < boxes.length; i++) {
+                        boxes[i]['boxStatus'] = doors[i] ? 'close' : 'open'
+                    }
+
+                    axios.post(this.httpProxy.options.target + '/' + this.getAPIUrl(`ExchangeDeviceInformation`), {
+                        deviceInfo: boxes,
+                        uniqueCode: this.unique_code,
+                    }, {
+                        headers: {'ApiKey': this.API_KEY},
+                    }).then((r) => {
+                        if (r.data) {
+                            r.data.forEach(boxToOpen => {
+                                boxes.forEach((box, index) => {
+                                    if (box.boxId === boxToOpen.boxId) {
+                                        this.locker.openDoor(index)
+                                    }
+                                })
+                            })
+                        }
+                    }).catch((e) => {
+                    })
+                }
+
+                setInterval(exchangeInfo, 60 * 1000)
+                exchangeInfo()
+            } else {
+                setTimeout(() => this.exchangeDeviceInfo(), 30 * 1000)
+            }
+        }).catch((e) => {
+            // console.log(e)
+            setTimeout(() => this.exchangeDeviceInfo(), 10 * 1000)
+        });
     }
 
     check(request, response) {
