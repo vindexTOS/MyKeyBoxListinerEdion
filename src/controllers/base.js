@@ -114,6 +114,13 @@ module.exports = class Controller {
                         boxes[i]['boxStatus'] = doors[i] ? 'close' : 'open'
                     }
 
+                    console.log('exchangeDeviceInfo:ExchangeDeviceInformation Request', this.httpProxy.options.target + '/' + this.getAPIUrl(`ExchangeDeviceInformation`), {
+                        deviceInfo: boxes,
+                        uniqueCode: this.unique_code,
+                    }, {
+                        headers: {'ApiKey': this.API_KEY},
+                    })
+
                     axios.post(this.httpProxy.options.target + '/' + this.getAPIUrl(`ExchangeDeviceInformation`), {
                         deviceInfo: boxes,
                         uniqueCode: this.unique_code,
