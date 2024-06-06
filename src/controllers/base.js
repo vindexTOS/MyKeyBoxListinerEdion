@@ -25,7 +25,7 @@ module.exports = class Controller {
             this.locker = locker
 
             this.httpProxy = httpProxy.createProxyServer({
-                target: this.TEST_DEVICES_UNIQUE_CODES.includes(this.unique_code) ? this.TEST_API_BASE : this.API_BASE,
+                target: this.getApiBaseDependingOnUniqueCode(),
                 changeOrigin: true,
                 selfHandleResponse: true,
             })
@@ -53,6 +53,10 @@ module.exports = class Controller {
 
             this.httpProxy.timeout = 10000
         })
+    }
+
+    getApiBaseDependingOnUniqueCode() {
+        return this.TEST_DEVICES_UNIQUE_CODES.includes(this.unique_code) ? this.TEST_API_BASE : this.API_BASE
     }
 
     async readOrCreateUniqueCode() {
@@ -97,7 +101,9 @@ module.exports = class Controller {
     }
 
     exchangeDeviceInfo() {
-        axios.get(this.httpProxy.options.target + '/' + this.getAPIUrl(`GetBoxes?uniqueCode=${this.unique_code}` ), {
+        let url = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`GetBoxes?uniqueCode=${this.unique_code}` )
+        console.log('exchangeDeviceInfo:GetBoxes:url: ' + url)
+        axios.get(url, {
             headers: {'ApiKey': this.API_KEY},
         }).then((r) => {
             if (r.data) {
@@ -114,14 +120,10 @@ module.exports = class Controller {
                         boxes[i]['boxStatus'] = doors[i] ? 'close' : 'open'
                     }
 
-                    console.log('exchangeDeviceInfo:ExchangeDeviceInformation Request', this.httpProxy.options.target + '/' + this.getAPIUrl(`ExchangeDeviceInformation`), {
-                        deviceInfo: boxes,
-                        uniqueCode: this.unique_code,
-                    }, {
-                        headers: {'ApiKey': this.API_KEY},
-                    })
+                    let exchangeDeviceInformationUrl = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`ExchangeDeviceInformation`)
+                    console.log('exchangeDeviceInfo:exchangeInfo:url: ', exchangeDeviceInformationUrl)
 
-                    axios.post(this.httpProxy.options.target + '/' + this.getAPIUrl(`ExchangeDeviceInformation`), {
+                    axios.post(exchangeDeviceInformationUrl, {
                         deviceInfo: boxes,
                         uniqueCode: this.unique_code,
                     }, {
@@ -138,7 +140,7 @@ module.exports = class Controller {
                             })
                         }
                     }).catch((e) => {
-                        console.log('exchangeDeviceInfo:ExchangeDeviceInformation Fail: ' + e.message)
+                        console.log('exchangeDeviceInfo:ExchangeDeviceInformation FAIL: ' + e.message)
                     })
                 }
 

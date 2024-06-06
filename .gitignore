@@ -2,3 +2,4 @@
 node_modules
 device.uniquecode.txt
 logs.log
+logs_backup
