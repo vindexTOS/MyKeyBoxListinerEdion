@@ -3,24 +3,23 @@ const axios = require('axios')
 
 module.exports = class Controller {
     API_KEY = 'z7#D4k9@A9'
-    TEST_API_BASE = 'https://testkeybox.mygps.ge:4433'
-    API_BASE = 'https://mykeybox.com'
+    TEST_API_BASE = 'http://back.mykeybox.com:32769'
+    API_BASE = 'http://back.mykeybox.com:32769'
 
     UNIQUE_CODE_LENGTH = 7
     UNIQUE_CODE_FILENAME = 'device.uniquecode.txt'
 
-    unique_code = ''
+    unique_code = '65756'
 
     TEST_DEVICES_UNIQUE_CODES = [
-        '4058840',
+        '65756',
         // '9647188', // This line has been commented out at Roma's request
     ]
 
     constructor(locker, httpProxy) {
-        console.log('Controller.constructor')
+
         this.readOrCreateUniqueCode().then(() => {
-            console.log('Unique code is: ' + this.unique_code)
-            console.log('Testing devices are: ', this.TEST_DEVICES_UNIQUE_CODES)
+            console.log(this.getApiBaseDependingOnUniqueCode(), "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<,")
 
             this.locker = locker
 
@@ -43,10 +42,10 @@ module.exports = class Controller {
             this.httpProxy.on('error', (err, req, res) => {
                 console.error('Proxy error', err)
                 if (err.code === 'ETIMEDOUT') {
-                    res.writeHead(504, {'Content-Type': 'text/plain'})
+                    res.writeHead(504, { 'Content-Type': 'text/plain' })
                     res.end('Gateway Timeout')
                 } else {
-                    res.writeHead(500, {'Content-Type': 'text/plain'})
+                    res.writeHead(500, { 'Content-Type': 'text/plain' })
                     res.end('Internal Server Error')
                 }
             })
@@ -56,6 +55,7 @@ module.exports = class Controller {
     }
 
     getApiBaseDependingOnUniqueCode() {
+
         return this.TEST_DEVICES_UNIQUE_CODES.includes(this.unique_code) ? this.TEST_API_BASE : this.API_BASE
     }
 
@@ -66,13 +66,15 @@ module.exports = class Controller {
 
         const checkIfCodeExistsRemote = async (code) => {
             try {
-                const url = this.API_BASE + '/' + this.getAPIUrl('VerifyUniqueCode?uniqueCode=' + code)
+                const url = this.API_BASE + '/' + 'dealership-module/VerifyUniqueCode?uniqueCode=' + code
                 // console.log(url)
                 const response = await axios.get(url, {
                     headers: {
                         'ApiKey': this.API_KEY,
                     }
                 })
+
+                console.log(response)
                 return response.status === 200
             } catch (error) {
                 return false
@@ -99,35 +101,35 @@ module.exports = class Controller {
             }
         }
     }
-
+    // every 60 seconds this gets fetched from server and gets boxes information
     exchangeDeviceInfo() {
-        let url = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`GetBoxes?uniqueCode=${this.unique_code}` )
+        let url = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`GetBoxesByUniqueKey/${this.unique_code}`)
         console.log('exchangeDeviceInfo:GetBoxes:url: ' + url)
         axios.get(url, {
-            headers: {'ApiKey': this.API_KEY},
+            headers: { 'ApiKey': this.API_KEY },
         }).then((r) => {
             if (r.data) {
                 console.log('exchangeDeviceInfo:GetBoxes OK', r.data)
                 let boxes = []
-                r.data.forEach((box) => {
-                    let boxData = {...box}
-                    delete boxData['boxStatus']
+                r.data.boxes.forEach((box) => {
+                    let boxData = { ...box }
+
                     boxes.push(boxData)
                 })
                 const exchangeInfo = () => {
                     let doors = this.locker.getClosedDoorsState().map(i => i ? 1 : 0)
-                    for(let i = 0; i < boxes.length; i++) {
+                    for (let i = 0; i < boxes.length; i++) {
                         boxes[i]['boxStatus'] = doors[i] ? 'close' : 'open'
                     }
 
                     let exchangeDeviceInformationUrl = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`ExchangeDeviceInformation`)
                     console.log('exchangeDeviceInfo:exchangeInfo:url: ', exchangeDeviceInformationUrl)
-
+                    // console.log(exchangeDeviceInformationUrl)
                     axios.post(exchangeDeviceInformationUrl, {
                         deviceInfo: boxes,
                         uniqueCode: this.unique_code,
                     }, {
-                        headers: {'ApiKey': this.API_KEY},
+                        headers: { 'ApiKey': this.API_KEY },
                     }).then((r) => {
                         console.log('exchangeDeviceInfo:ExchangeDeviceInformation OK', r.data)
                         if (r.data) {
@@ -184,10 +186,46 @@ module.exports = class Controller {
 
     proxyToThirdPartyApi(url, request, response) {
         try {
+
+ 
+
             request.headers['ApiKey'] = this.API_KEY
-            const separator = url.includes('?') ? '&' : '?'
-            request.url = this.getAPIUrl(url + separator + 'uniqueCode=' + this.unique_code)
-            this.httpProxy.web(request, response)
+            // const separator = url.includes('?') ? '&' : '?'
+            if (url.includes('GetOrderByDoorCode')) {
+                request.url = this.API_BASE + "/order-module/" + url + "/" + this.unique_code
+                console.log(request.url, "SENDING ON THIS URL ETC GET ORDER ")
+
+                this.httpProxy.web(request, response)
+
+            } else if (url.includes('InitializeOrder')) {
+                request.url =  this.API_BASE + "/" + this.getAPIUrl(url)
+                this.httpProxy.web(request, response)
+
+            } 
+             else if(url.includes("SetOrderStatus")){
+                request.url =  this.API_BASE + '/order-module/' + 'SetOrderStatus'
+                console.log(request.url, "SENDING ON THIS URL ETC ")
+                console.log(request.url )
+                console.log(request.url, "SENDING ON THIS URL ETC ")
+
+                this.httpProxy.web(request, response)
+             } else if(url.includes('GetBoxesByUniqueKey')){
+                request.url =  this.API_BASE + "/" + this.getAPIUrl(url)
+
+                this.httpProxy.web(request, response)
+
+             }else if (url.includes("GetLanguage")){
+                request.url =  this.API_BASE + "/" + this.getAPIUrl(url)
+                this.httpProxy.web(request, response)
+
+             }
+            else {
+                request.url = this.getAPIUrl(url + "/" + this.unique_code)
+                this.httpProxy.web(request, response)
+
+            }
+            // console.log('2', request.url)
+
         } catch (err) {
             this.response(response, {
                 'code': 'error',
@@ -203,7 +241,14 @@ module.exports = class Controller {
         }, 400)
     }
 
+
+
+
     handle(request, response) {
+
+
+
+
         if (request.url === '/device_code') {
             return this.deviceCode(request, response)
         }
@@ -220,7 +265,9 @@ module.exports = class Controller {
             this.open(parseInt(split[split.length - 1]), request, response)
         } else if (request.url.startsWith('/api')) {
             let split = request.url.split('/')
+
             this.proxyToThirdPartyApi(split.filter((i) => i !== '').slice(1).join('/'), request, response)
+
         } else {
             this.invalidRequest(request, response)
         }
@@ -242,6 +289,6 @@ module.exports = class Controller {
     }
 
     getAPIUrl(url) {
-        return 'Umbraco/Api/MyKeyBoxOrder/' + url
+        return 'dealership-module/' + url
     }
 }
