@@ -192,7 +192,7 @@ module.exports = class Controller {
             request.headers['ApiKey'] = this.API_KEY
             // const separator = url.includes('?') ? '&' : '?'
             if (url.includes('GetOrderByDoorCode')) {
-                request.url = this.API_BASE + "/order-module/" + url + "/" + this.unique_code
+                request.url = this.API_BASE + "/order-module/Order/" + url + "/" + this.unique_code
                 console.log(request.url, "SENDING ON THIS URL ETC GET ORDER ")
 
                 this.httpProxy.web(request, response)
@@ -203,7 +203,7 @@ module.exports = class Controller {
 
             } 
              else if(url.includes("SetOrderStatus")){
-                request.url =  this.API_BASE + '/order-module/' + 'SetOrderStatus'
+                request.url =  this.API_BASE + '/order-module/Order/' + 'SetOrderStatus'
                 console.log(request.url, "SENDING ON THIS URL ETC ")
                 console.log(request.url )
                 console.log(request.url, "SENDING ON THIS URL ETC ")
