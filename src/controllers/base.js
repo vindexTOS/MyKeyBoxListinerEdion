@@ -66,7 +66,7 @@ module.exports = class Controller {
 
         const checkIfCodeExistsRemote = async (code) => {
             try {
-                const url = this.API_BASE + '/' + 'dealership-module/VerifyUniqueCode?uniqueCode=' + code
+                const url = this.API_BASE + '/' + 'dealership-module/BoxAndLocker/VerifyUniqueCode?uniqueCode=' + code
                 // console.log(url)
                 const response = await axios.get(url, {
                     headers: {
