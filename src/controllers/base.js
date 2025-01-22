@@ -67,7 +67,7 @@ module.exports = class Controller {
         const checkIfCodeExistsRemote = async (code) => {
             try {
                 const url = this.API_BASE + '/' + 'dealership-module/BoxAndLocker/VerifyUniqueCode?uniqueCode=' + code
-                // console.log(url)
+                console.log(url)
                 const response = await axios.get(url, {
                     headers: {
                         'ApiKey': this.API_KEY,
@@ -124,7 +124,7 @@ module.exports = class Controller {
 
                     let exchangeDeviceInformationUrl = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`ExchangeDeviceInformation`)
                     console.log('exchangeDeviceInfo:exchangeInfo:url: ', exchangeDeviceInformationUrl)
-                    // console.log(exchangeDeviceInformationUrl)
+                    console.log(exchangeDeviceInformationUrl)
                     axios.post(exchangeDeviceInformationUrl, {
                         deviceInfo: boxes,
                         uniqueCode: this.unique_code,
