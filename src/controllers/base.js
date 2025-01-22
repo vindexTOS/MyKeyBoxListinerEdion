@@ -289,6 +289,6 @@ module.exports = class Controller {
     }
 
     getAPIUrl(url) {
-        return 'dealership-module/' + url
+        return 'dealership-module/BoxAndLocker/' + url
     }
 }
