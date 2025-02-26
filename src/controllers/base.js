@@ -99,7 +99,7 @@ module.exports = class Controller {
             if (this.unique_code.length !== this.UNIQUE_CODE_LENGTH) {
                 await generateAndStoreCode()
             }
-        }
+        } 
     }
     // every 60 seconds this gets fetched from server and gets boxes information
     exchangeDeviceInfo() {
@@ -111,27 +111,42 @@ module.exports = class Controller {
             if (r.data) {
                 console.log('exchangeDeviceInfo:GetBoxes OK', r.data)
                 let boxes = []
+                let sendingBoxesToDb = []
                 r.data.boxes.forEach((box) => {
                     let boxData = { ...box }
 
                     boxes.push(boxData)
+                    sendingBoxesToDb.push(boxData)
                 })
                 const exchangeInfo = () => {
                     let doors = this.locker.getClosedDoorsState().map(i => i ? 1 : 0)
                     for (let i = 0; i < boxes.length; i++) {
+                    
                         boxes[i]['boxStatus'] = doors[i] ? 'close' : 'open'
+                        // boxes[i]['connectionStatus'] = true
+                        // boxes[i]['condition'] = 2
+                        sendingBoxesToDb[i]['boxId']= boxes[i]['id']
+                        sendingBoxesToDb[i]['connectionStatus']=  true
+                        // sendingBoxesToDb[i]['condition']=  2
+                   
+                    delete   sendingBoxesToDb[i]['name']
+                    delete   sendingBoxesToDb[i]['boxStatus']
+                    
                     }
 
                     let exchangeDeviceInformationUrl = this.getApiBaseDependingOnUniqueCode() + '/' + this.getAPIUrl(`ExchangeDeviceInformation`)
                     console.log('exchangeDeviceInfo:exchangeInfo:url: ', exchangeDeviceInformationUrl)
                     console.log(exchangeDeviceInformationUrl)
+                    console.log(boxes)
+                   
                     axios.post(exchangeDeviceInformationUrl, {
-                        deviceInfo: boxes,
+                        boxAndLockerInfo: sendingBoxesToDb,
                         uniqueCode: this.unique_code,
                     }, {
                         headers: { 'ApiKey': this.API_KEY },
                     }).then((r) => {
                         console.log('exchangeDeviceInfo:ExchangeDeviceInformation OK', r.data)
+                       
                         if (r.data) {
                             r.data.forEach(boxToOpen => {
                                 boxes.forEach((box, index) => {
@@ -191,9 +206,10 @@ module.exports = class Controller {
 
             request.headers['ApiKey'] = this.API_KEY
             // const separator = url.includes('?') ? '&' : '?'
+            console.log("shemosvla")
             if (url.includes('GetOrderByDoorCode')) {
                 request.url = this.API_BASE + "/order-module/Order/" + url + "/" + this.unique_code
-                console.log(request.url, "SENDING ON THIS URL ETC GET ORDER ")
+                console.log(request.url, "SENDING ON THIS URL ETC GET ORDER  >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>.")
 
                 this.httpProxy.web(request, response)
 
@@ -224,7 +240,7 @@ module.exports = class Controller {
                 this.httpProxy.web(request, response)
 
             }
-            // console.log('2', request.url)
+            console.log('2', request.url)
 
         } catch (err) {
             this.response(response, {
