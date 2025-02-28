@@ -3,7 +3,7 @@
 
 ### You may need to set permissions to usb device.
 - `sudo chmod 666 /dev/ttyUSB0`
-
+<!-- sudo chmod 666 /dev/ttyUSB1 -->
 ### install nvm and then install npm
 - `npm install`
 

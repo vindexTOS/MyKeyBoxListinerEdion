@@ -6,7 +6,6 @@ module.exports = class Controller {
     TEST_API_BASE = 'http://back.mykeybox.com:32769'
     API_BASE = 'http://back.mykeybox.com:32769'
 
-    UNIQUE_CODE_LENGTH = 7
     UNIQUE_CODE_FILENAME = 'device.uniquecode.txt'
 
     unique_code = '65756'
